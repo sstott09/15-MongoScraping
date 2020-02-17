@@ -1,4 +1,5 @@
 // Dependencies
+
 var express = require("express");
 var method = require("method-override");
 var body = require("body-parser");
@@ -7,10 +8,12 @@ var mongoose = require("mongoose");
 var logger = require("morgan");
 var cherrio = require("cheerio");
 var request = require("request");
+var axios = require("axios");
 
 // Mongoose
-var Note = require("./models/Note");
-var Article = require("./models/Article");
+
+var Note = require("../17-MongoScraping/models/Note");
+var Article = require("../17-MongoScraping/models/Article");
 var databaseUrl = 'mongodb://localhost/3000';
 
 if (process.emitWarning.MONGODB_URI) {
@@ -41,7 +44,7 @@ app.use(logger("dev"));
 app.use(express.static("public"));
 app.use(body.urlencoded({extended: false}));
 app.use(method("_method"));
-app.engine("handlebards", expresshandlebars({defaultLayout: "main"}));
+app.engine("handlebars", expresshandlebars({defaultLayout: "main"}));
 app.set("view engine", "handlebars");
 
 app.listen(port, function() {
@@ -53,12 +56,13 @@ app.listen(port, function() {
 app.get("/", function(req, res) {
     Article.find({}, null, {sort: {created: -1}}, function(err, data) {
         if (data.length === 0) {
-            res.render("placeholder", {message: "There's nothing scraped yet. Please click \"Scrape for Newest Articles\" for frresh and delicious news."});
+            res.render("placeholder", {message: "There's nothing scraped yet. Please click \"Scrape for Newest Articles\" for fresh and delicious news."});
         }
         else{
             res.render("index", {articles: data});
         }
     });
+});
 
 app.get("scrape", function(req, res) {
     request("https://www.nytimes.com/section/world", function(error, response, html) {
@@ -112,7 +116,7 @@ app.get("/:id", function(req, res) {
 })
 
 app.post("/search", function(req, res) {
-    console.log.(req.body.search);
+    console.log(req.body.search);
     Article.find({$text: {$search: req.body.search, $caseSensitive: false}}, null, {sort: {created: -1}}, function(err, data) {
         console.log(data);
         if (data.length === 0) {
